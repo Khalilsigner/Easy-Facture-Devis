@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" href="icon.png">
+<title>Devis - Easy Facture &amp; Devis</title>
+<script>
+if (new URLSearchParams(window.location.search).get('intro') === 'done') {
+  window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+} else {
+  window.location.replace("index.html");
+}
+</script>
+<style>
+  :root{
+    --brique:#23769f;
+    --bleu:#12293f;
+    --gris-fonce:#2B2B2B;
+    --gris-clair:#EDF1F7;
+    --gris-moyen:#6E6E6E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    color:var(--gris-fonce);
+    background:#e9e9e9;
+    margin:0;
+    padding:20px 0;
+  }
+  .page{
+    max-width:820px;
+    margin:0 auto 30px;
+    background:#fff;
+    padding:30px 40px 40px;
+    box-shadow:0 0 12px rgba(0,0,0,0.15);
+  }
+  .page:not(.active){ display:none; }
+  .invoice-payments{
+    width:280px;
+    margin:0 0 10px auto;
+    padding:8px 10px;
+    border:1px solid var(--gris-clair);
+    font-size:12.5px;
+  }
+  .invoice-payments div{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:3px 0;
+  }
+  .invoice-payments .balance{
+    border-top:2px solid var(--bleu);
+    color:var(--bleu);
+    font-weight:bold;
+    margin-top:4px;
+    padding-top:6px;
+  }
+  .toolbar{
+    max-width:820px;
+    margin:0 auto 14px;
+    text-align:center;
+  }
+  .document-tabs{
+    max-width:820px;
+    margin:0 auto 12px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+  }
+  .document-tabs button{
+    border:1px solid var(--brique);
+    border-radius:5px;
+    padding:9px 24px;
+    color:var(--brique);
+    background:#fff;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+  .document-tabs button.active{
+    background:var(--brique);
+    color:#fff;
+  }
+  .toolbar button{
+    background:var(--brique);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    margin:0 4px;
+    border-radius:5px;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{ opacity:0.9; }
+  .install-help{
+    max-width:820px;
+    margin:0 auto 14px;
+    padding:10px 14px;
+    border:1px solid #c8dce8;
+    border-radius:6px;
+    background:#f5f9fc;
+    color:#12293f;
+    font-size:13px;
+  }
+  .install-help summary{ color:#23769f; font-weight:bold; cursor:pointer; }
+  .install-help p{ margin:8px 0 0; line-height:1.5; }
+  .modal-box.settings-box{ max-width:520px; }
+  .settings-form{ display:grid; gap:14px; }
+  .settings-form label{ display:grid; gap:6px; font-size:13px; font-weight:bold; }
+  .settings-form input[type="text"],
+  .settings-form input[type="tel"],
+  .settings-form input[type="email"],
+  .settings-form input[type="file"]{
+    width:100%;
+    padding:9px;
+    border:1px solid var(--gris-clair);
+    border-radius:4px;
+    font:inherit;
+    font-weight:normal;
+  }
+  .settings-form input[type="color"]{
+    width:58px;
+    height:38px;
+    padding:2px;
+    border:1px solid var(--gris-clair);
+    border-radius:4px;
+    background:#fff;
+  }
+  .color-fields{ display:flex; flex-wrap:wrap; gap:18px; }
+  .color-fields label{ display:flex; align-items:center; gap:8px; }
+  .logo-preview{
+    max-width:180px;
+    max-height:100px;
+    object-fit:contain;
+  }
+  .settings-actions{ display:flex; justify-content:space-between; gap:8px; margin-top:6px; }
+  .settings-actions button{
+    border:0;
+    border-radius:4px;
+    padding:9px 12px;
+    background:var(--brique);
+    color:#fff;
+    cursor:pointer;
+  }
+  .settings-actions .secondary-action{ background:var(--gris-moyen); }
+  .settings-note{ color:var(--gris-moyen); font-size:11px; font-weight:normal; }
+  .share-box{ max-width:620px; }
+  .share-form{ display:grid; gap:12px; }
+  .share-recipient{ margin:0; font-size:13px; }
+  .share-message{
+    width:100%;
+    min-height:220px;
+    padding:10px;
+    border:1px solid var(--gris-clair);
+    border-radius:4px;
+    font:13px/1.5 'Helvetica Neue', Arial, sans-serif;
+    resize:vertical;
+  }
+  .share-file{ display:grid; gap:6px; font-size:12px; font-weight:bold; }
+  .share-file input{ font:inherit; font-weight:normal; }
+  .share-actions{ display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+  .share-actions button{
+    border:0;
+    border-radius:4px;
+    padding:9px 14px;
+    background:var(--brique);
+    color:#fff;
+    cursor:pointer;
+  }
+  .share-actions .whatsapp-action{ background:#168c4b; }
+  .share-note{ margin:0; color:var(--gris-moyen); font-size:11px; line-height:1.5; }
+
+  h1.company{
+    text-align:center;
+    color:var(--brique);
+    font-size:24px;
+    margin:0 0 2px;
+    letter-spacing:0.5px;
+  }
+  .logo-wrap{
+    text-align:center;
+    margin:0 0 6px;
+  }
+  .logo-wrap img{
+    height:110px;
+    width:auto;
+  }
+  p.tagline{
+    text-align:center;
+    color:var(--gris-moyen);
+    font-size:12px;
+    margin:0 0 12px;
+  }
+  hr.top{
+    border:none;
+    border-top:2px solid var(--brique);
+    margin:0 0 14px;
+  }
+  h2.devis-title{
+    text-align:center;
+    font-size:28px;
+    margin:0 0 2px;
+  }
+  p.devis-num{
+    text-align:center;
+    color:var(--gris-moyen);
+    font-size:12px;
+    margin:0 0 18px;
+  }
+
+  .info-grid{
+    display:flex;
+    gap:20px;
+    border:1px solid var(--gris-clair);
+    padding:14px 16px;
+    margin-bottom:14px;
+  }
+  .info-col{ flex:1; }
+  .info-col h3{
+    font-size:12px;
+    margin:0 0 8px;
+    color:var(--bleu);
+    border-bottom:2px solid var(--bleu);
+    padding-bottom:4px;
+  }
+  .info-col p{ font-size:12.5px; margin:4px 0; }
+  .info-col p b{ color:var(--gris-fonce); }
+
+  .objet{
+    background:var(--gris-clair);
+    padding:10px 14px;
+    font-size:12.5px;
+    margin-bottom:16px;
+  }
+
+  table.items{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:10px;
+  }
+  table.items th{
+    background:var(--brique);
+    color:#fff;
+    font-size:11px;
+    padding:8px 6px;
+    text-align:center;
+  }
+  table.items td{
+    border:1px solid var(--gris-clair);
+    font-size:11.5px;
+    padding:6px 6px;
+    vertical-align:middle;
+  }
+  table.items td.num, table.items td.qte, table.items td.unite,
+  table.items td.pu, table.items td.montant{
+    text-align:center;
+  }
+  tr.group td{
+    background:var(--gris-clair);
+    color:var(--bleu);
+    font-weight:bold;
+    font-size:11.5px;
+  }
+  .add-row-btn{
+    background:none;
+    border:1px dashed var(--gris-moyen);
+    color:var(--gris-moyen);
+    font-size:11px;
+    padding:5px 10px;
+    cursor:pointer;
+    margin:4px 6px 16px 0;
+    border-radius:4px;
+  }
+  .add-row-btn:hover{ background:var(--gris-clair); }
+  .table-actions{ margin:4px 0 16px; }
+  .table-scroll{ width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+
+  td.actions, th.actions{
+    text-align:center;
+    white-space:nowrap;
+    padding:4px 2px !important;
+  }
+  .row-btn{
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:12px;
+    padding:2px 3px;
+    line-height:1;
+    border-radius:3px;
+  }
+  .row-btn:hover{ background:var(--gris-clair); }
+  .row-btn.del{ color:var(--brique); }
+  .row-btn.ins{ color:var(--bleu); }
+  tr.group .row-btn{ font-size:11px; }
+
+  .totals{
+    width:280px;
+    margin-left:auto;
+    font-size:12.5px;
+    margin-bottom:10px;
+  }
+  .totals div{
+    display:flex;
+    justify-content:space-between;
+    padding:4px 0;
+  }
+  .totals div.net{
+    border-top:2px solid var(--bleu);
+    color:var(--bleu);
+    font-weight:bold;
+    margin-top:4px;
+  }
+  .totals div.ht{
+    border-top:1px solid var(--gris-moyen);
+  }
+
+  .duree{ font-size:12.5px; margin:14px 0; }
+
+  .signatures{
+    display:flex;
+    gap:40px;
+    margin-top:30px;
+  }
+  .sign-col{ flex:1; }
+  .sign-col h4{ font-size:12px; margin:0 0 4px; color:var(--bleu); }
+  .sign-col p.small{ font-size:11px; color:var(--gris-moyen); font-style:italic; margin:0 0 30px;}
+  .contact .brand-name{ color:#23769f; font-weight:bold; }
+  .sign-line{ border-top:1px solid var(--gris-clair); padding-top:6px; font-size:12px; }
+
+  footer.contact{
+    text-align:center;
+    font-size:11px;
+    color:var(--gris-moyen);
+    border-top:1px solid var(--gris-clair);
+    margin-top:24px;
+    padding-top:8px;
+  }
+
+  [contenteditable="true"]{
+    outline:1px dashed transparent;
+    min-width:20px;
+  }
+  [contenteditable="true"]:hover,
+  [contenteditable="true"]:focus{
+    outline:1px dashed #bbb;
+    background:#fffef7;
+  }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .toolbar, .document-tabs, .modal-overlay{ display:none !important; }
+    .page:not(.active){ display:none; }
+    .page{ box-shadow:none; margin:0; padding:0; max-width:100%; }
+    .add-row-btn{ display:none; }
+    .table-actions{ display:none; }
+    td.actions, th.actions{ display:none; }
+    [contenteditable="true"]:hover,
+    [contenteditable="true"]:focus{ outline:none; background:none; }
+  }
+
+  @media (max-width:640px){
+    body{ padding:10px 0; }
+    .document-tabs, .toolbar, .install-help{ width:calc(100% - 20px); }
+    .document-tabs button{ flex:1; min-height:44px; padding:9px 14px; }
+    .toolbar{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .toolbar button{ min-height:44px; margin:0; padding:9px 8px; font-size:12px; }
+    .install-help{ margin:0 auto 12px; }
+    .page{ width:calc(100% - 16px); padding:20px 14px 24px; }
+    .logo-wrap img{ max-width:100%; height:auto; max-height:90px; }
+    h1.company{ font-size:20px; }
+    h2.devis-title{ font-size:24px; }
+    .info-grid{ flex-direction:column; gap:12px; padding:12px; }
+    .info-col{ min-width:0; }
+    .objet{ padding:9px 10px; overflow-wrap:anywhere; }
+    .table-scroll{ margin-right:-2px; }
+    table.items{ min-width:680px; }
+    .table-actions{ display:flex; flex-wrap:wrap; gap:4px; }
+    .add-row-btn{ min-height:40px; white-space:normal; text-align:left; }
+    .totals, .invoice-payments{ width:100%; }
+    .signatures{ flex-direction:column; gap:22px; margin-top:22px; }
+    .sign-col p.small{ margin-bottom:18px; }
+    footer.contact{ line-height:1.6; overflow-wrap:anywhere; }
+    .modal-overlay{ align-items:flex-start; padding:10px; }
+    .modal-box{ max-height:calc(100dvh - 20px); }
+    .share-message{ min-height:150px; }
+    .share-actions{ justify-content:stretch; }
+    .share-actions button{ flex:1; min-height:44px; }
+    .settings-actions{ flex-wrap:wrap; }
+    .settings-actions button{ min-height:42px; }
+  }
+  @media print{
+    .table-scroll{ overflow:visible; }
+    table.items{ min-width:0; }
+  }
+
+  /* --- Historique des devis --- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-box{
+    background:#fff;
+    width:100%;
+    max-width:720px;
+    max-height:85vh;
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  }
+  .modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    background:var(--gris-fonce);
+    color:#fff;
+  }
+  .modal-header h3{ margin:0; font-size:16px; }
+  .modal-close{
+    background:none;
+    border:none;
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+    padding:2px 8px;
+    border-radius:4px;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,0.15); }
+  .modal-body{
+    padding:14px 18px;
+    overflow-y:auto;
+  }
+  .history-empty{
+    text-align:center;
+    color:var(--gris-moyen);
+    font-size:13px;
+    padding:30px 10px;
+  }
+  .history-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    border:1px solid var(--gris-clair);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .history-item-info{ flex:1; min-width:0; }
+  .history-item-client{
+    font-weight:bold;
+    font-size:13px;
+    color:var(--gris-fonce);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .history-item-meta{
+    font-size:11px;
+    color:var(--gris-moyen);
+    margin-top:2px;
+  }
+  .history-item-actions{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .history-btn{
+    border:none;
+    border-radius:4px;
+    font-size:11px;
+    padding:6px 10px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .invoice-page .add-section-btn{ display:none; }
+  .history-btn.load{ background:var(--bleu); color:#fff; }
+  .history-btn.load:hover{ opacity:0.9; }
+  .history-btn.del{ background:none; border:1px solid var(--brique); color:var(--brique); }
+  .history-btn.del:hover{ background:var(--brique); color:#fff; }
+</style>
+</head>
+<body>
+
+<details class="install-help">
+  <summary>Mettre la plateforme sur l’écran d’accueil du téléphone</summary>
+  <p><b>Android :</b> ouvrez cette page dans Chrome, touchez ⋮ puis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</p>
+  <p><b>iPhone :</b> ouvrez cette page dans Safari, touchez « Partager » puis « Sur l’écran d’accueil ».</p>
+  <p>Utilisez l’adresse du site déployé sur GitHub Pages, pas un fichier téléchargé.</p>
+</details>
+
+<div class="document-tabs" role="tablist" aria-label="Type de document">
+  <button id="quoteTab" class="active" role="tab" aria-controls="quotePage" aria-selected="true" onclick="switchDocument('devis')">Devis</button>
+  <button id="invoiceTab" role="tab" aria-controls="invoicePage" aria-selected="false" onclick="switchDocument('facture')">Facture</button>
+</div>
+
+<div class="toolbar">
+  <button onclick="openSettingsModal()">⚙️ Personnaliser</button>
+  <button onclick="openShareModal()">📤 Envoyer au client</button>
+  <button onclick="window.print()">🖨️ Imprimer / Exporter en PDF</button>
+  <button onclick="addRow()">➕ Ajouter une ligne</button>
+  <button onclick="calcTotals()">🔄 Recalculer le total</button>
+  <button onclick="saveCurrentDocument()">💾 Sauvegarder</button>
+  <button onclick="openHistoryModal()">📂 Historique</button>
+</div>
+
+<div id="shareModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box share-box" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <div class="modal-header">
+      <h3 id="shareTitle">Envoyer le document au client</h3>
+      <button class="modal-close" onclick="closeShareModal()" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body share-form">
+      <p id="shareRecipient" class="share-recipient"></p>
+      <label for="shareMessage">Message à envoyer
+        <textarea id="shareMessage" class="share-message"></textarea>
+      </label>
+      <label class="share-file" for="sharePdfInput">PDF à joindre (facultatif)
+        <input id="sharePdfInput" type="file" accept="application/pdf,.pdf">
+      </label>
+      <p id="shareStatus" class="share-note" aria-live="polite">Le PDF sera préparé pour être partagé ou téléchargé.</p>
+      <div class="share-actions">
+        <button id="shareWhatsAppButton" type="button" class="whatsapp-action" onclick="sendByWhatsApp()" disabled>Partager par WhatsApp</button>
+        <button id="shareEmailButton" type="button" onclick="sendByEmail()" disabled>Partager par e-mail</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box settings-box" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-header">
+      <h3 id="settingsTitle">Personnaliser l'entreprise</h3>
+      <button class="modal-close" onclick="closeSettingsModal()" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <form class="settings-form" onsubmit="saveBrandSettings(event)">
+        <label for="companyNameInput">Nom de l'entreprise
+          <input id="companyNameInput" type="text" maxlength="100" required>
+        </label>
+        <label for="companyTaglineInput">Slogan / activité
+          <input id="companyTaglineInput" type="text" maxlength="160">
+        </label>
+        <label for="companyPhoneInput">Téléphone de l'entreprise
+          <input id="companyPhoneInput" type="tel" maxlength="40">
+        </label>
+        <label for="companyWhatsappInput">Numéro WhatsApp de l'entreprise
+          <input id="companyWhatsappInput" type="tel" maxlength="40">
+        </label>
+        <label for="companyEmailInput">E-mail de l'entreprise
+          <input id="companyEmailInput" type="email" maxlength="120">
+        </label>
+        <label for="companyLogoInput">Logo de l'entreprise
+          <input id="companyLogoInput" type="file" accept="image/*">
+          <img id="logoPreview" class="logo-preview" alt="Aperçu du logo" hidden>
+          <span class="settings-note">Formats image acceptés, fichier de 1 Mo maximum.</span>
+        </label>
+        <label><span><input id="removeLogoInput" type="checkbox"> Retirer le logo actuel</span></label>
+        <div class="color-fields">
+          <label for="primaryColorInput">Couleur principale
+            <input id="primaryColorInput" type="color">
+          </label>
+          <label for="secondaryColorInput">Couleur secondaire
+            <input id="secondaryColorInput" type="color">
+          </label>
+        </div>
+        <div class="settings-actions">
+          <button type="button" class="secondary-action" onclick="resetBrandSettings()">Valeurs par défaut</button>
+          <button type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="historyModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="historyTitle">Historique des devis</h3>
+      <button class="modal-close" onclick="closeHistoryModal()">✕</button>
+    </div>
+    <div id="historyList" class="modal-body">
+      <!-- rempli dynamiquement -->
+    </div>
+  </div>
+</div>
+
+<div class="page active" id="quotePage" role="tabpanel" tabindex="0" aria-labelledby="quoteTab">
+
+  <div class="logo-wrap">
+    <img src="icon.png" alt="Logo Easy Facture &amp; Devis">
+  </div>
+  <h1 class="company brand-name">Easy Facture &amp; Devis</h1>
+  <p class="tagline brand-tagline">Vos devis et factures en quelques clics.</p>
+  <hr class="top">
+
+  <h2 class="devis-title">DEVIS</h2>
+  <p class="devis-num">N° <span contenteditable="true">BCS-2026-___</span></p>
+
+  <div class="info-grid">
+    <div class="info-col">
+      <h3>INFORMATIONS CLIENT</h3>
+      <p><b>Client :</b> <span contenteditable="true">________________________</span></p>
+      <p><b>Adresse :</b> <span contenteditable="true">________________________</span></p>
+      <p><b>Téléphone :</b> <span contenteditable="true">________________________</span></p>
+      <p><b>Email :</b> <span contenteditable="true">________________________</span></p>
+    </div>
+    <div class="info-col">
+      <h3>DÉTAILS DU DEVIS</h3>
+      <p><b>Date d'émission :</b> <span contenteditable="true">__ / __ / 2026</span></p>
+      <p><b>Chargé de projet :</b> <span contenteditable="true">BCS</span></p>
+      <p><b>Règlement :</b> <span contenteditable="true">50% début, 25%, 15%, 10% fin</span></p>
+      <p><b>Validité de l'offre :</b> <span contenteditable="true">__ jours</span></p>
+    </div>
+  </div>
+
+  <div class="objet">
+    <b>OBJET DES TRAVAUX :</b>
+    <span contenteditable="true">____________________________________________________</span>
+  </div>
+
+  <div class="table-scroll" role="region" aria-label="Lignes du document, faites défiler horizontalement sur petit écran" tabindex="0">
+  <table class="items" id="itemsTable">
+    <thead>
+      <tr>
+        <th style="width:5%">#</th>
+        <th style="width:34%">DÉSIGNATION DES TRAVAUX</th>
+        <th style="width:11%">UNITÉ</th>
+        <th style="width:9%">QTÉ</th>
+        <th style="width:15%">PRIX UNIT. (FCFA)</th>
+        <th style="width:16%">MONTANT HT (FCFA)</th>
+        <th class="actions" style="width:10%">+/-</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group">
+        <td colspan="6" contenteditable="true">LOT 1 — ________________________</td>
+        <td class="actions">
+          <button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne dans cette section">➕L</button>
+          <button class="row-btn ins" onclick="insertSectionAfter(this)" title="Ajouter une nouvelle section après">➕S</button>
+          <button class="row-btn del" onclick="deleteSection(this)" title="Supprimer cette section">🗑</button>
+        </td>
+      </tr>
+      <tr><td class="num">1</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">2</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">3</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">4</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+
+      <tr class="group">
+        <td colspan="6" contenteditable="true">LOT 2 — ________________________</td>
+        <td class="actions">
+          <button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne dans cette section">➕L</button>
+          <button class="row-btn ins" onclick="insertSectionAfter(this)" title="Ajouter une nouvelle section après">➕S</button>
+          <button class="row-btn del" onclick="deleteSection(this)" title="Supprimer cette section">🗑</button>
+        </td>
+      </tr>
+      <tr><td class="num">5</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">6</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">7</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">8</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+
+      <tr class="group">
+        <td colspan="6" contenteditable="true">LOT 3 — ________________________</td>
+        <td class="actions">
+          <button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne dans cette section">➕L</button>
+          <button class="row-btn ins" onclick="insertSectionAfter(this)" title="Ajouter une nouvelle section après">➕S</button>
+          <button class="row-btn del" onclick="deleteSection(this)" title="Supprimer cette section">🗑</button>
+        </td>
+      </tr>
+      <tr><td class="num">9</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">10</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">11</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+      <tr><td class="num">12</td><td contenteditable="true"></td><td class="unite" contenteditable="true"></td><td class="qte" contenteditable="true"></td><td class="pu" contenteditable="true"></td><td class="montant" contenteditable="true"></td><td class="actions"><button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button><button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="table-actions">
+    <button class="add-row-btn" onclick="addRow()">➕ Ajouter une ligne en fin de tableau</button>
+    <button class="add-row-btn add-section-btn" onclick="addSection()">➕ Ajouter une nouvelle section (LOT)</button>
+  </div>
+
+  <div class="totals">
+    <div class="ht"><span>Total HT</span><span id="totalHT">0 FCFA</span></div>
+    <div><span>Remise (%)</span><span id="remisePct" contenteditable="true">0</span></div>
+    <div><span>Montant remise</span><span id="remiseMontant">0 FCFA</span></div>
+    <div class="net"><span>NET À PAYER</span><span id="netAPayer">0 FCFA</span></div>
+  </div>
+
+  <p class="duree"><b>Durée des travaux :</b> <span contenteditable="true">__ jours</span> après la date de commencement.</p>
+
+  <div class="signatures">
+    <div class="sign-col">
+      <h4>SIGNATURE &amp; ACCORD CLIENT</h4>
+      <p class="small">Lu et approuvé - Bon pour accord</p>
+      <div class="sign-line">Date : <span contenteditable="true">__ / __ / 2026</span></div>
+    </div>
+    <div class="sign-col">
+      <h4>CACHET &amp; SIGNATURE ENTREPRISE</h4>
+      <p class="small brand-name">Easy Facture &amp; Devis</p>
+      <div class="sign-line">&nbsp;</div>
+    </div>
+  </div>
+
+  <footer class="contact">
+    <span class="brand-name">Easy Facture &amp; Devis</span> — Téléphone : <a class="brand-phone" href="tel:775851385">77 585 13 85 / 76 933 41 78</a><span class="brand-email-wrap" hidden> &nbsp;|&nbsp; E-mail : <a class="brand-email"></a></span><span class="brand-whatsapp-wrap"> &nbsp;|&nbsp; WhatsApp : <a class="brand-whatsapp" href="https://wa.me/393896852782" target="_blank" rel="noopener noreferrer">+00393896852782</a></span>
+  </footer>
+
+</div>
+
+<script src="vendor/html2pdf.bundle.min.js"></script>
+<script>
+let activeDocument = 'devis';
+let preparedSharePdf = null;
+let selectedSharePdf = null;
+const quotePage = document.getElementById('quotePage');
+const invoicePage = quotePage.cloneNode(true);
+invoicePage.id = 'invoicePage';
+invoicePage.classList.remove('active');
+invoicePage.classList.add('invoice-page');
+invoicePage.setAttribute('aria-labelledby', 'invoiceTab');
+invoicePage.querySelectorAll('#itemsTable tbody tr.group').forEach(row => row.remove());
+invoicePage.querySelector('.devis-title').innerText = 'FACTURE';
+invoicePage.querySelector('.devis-num span').innerText = 'BCS-FAC-2026-___';
+const invoiceInfoColumns = invoicePage.querySelectorAll('.info-col');
+invoiceInfoColumns[1].querySelector('h3').innerText = 'DÉTAILS DE LA FACTURE';
+const invoiceDetailRows = invoiceInfoColumns[1].querySelectorAll('p');
+invoiceDetailRows[2].innerHTML = '<b>Mode de paiement :</b> <span contenteditable="true">Espèces / Virement / Chèque</span>';
+invoiceDetailRows[3].innerHTML = '<b>Date limite de paiement :</b> <span contenteditable="true">__ / __ / 2026</span>';
+invoiceDetailRows[3].insertAdjacentHTML('afterend',
+  '<p><b>NINEA :</b> <span contenteditable="true">________________________</span></p>' +
+  '<p><b>RCCM :</b> <span contenteditable="true">________________________</span></p>');
+invoicePage.querySelector('.objet b').innerText = 'OBJET DE LA FACTURE :';
+invoicePage.querySelector('.duree').innerHTML = '<b>Conditions de paiement :</b> <span contenteditable="true">À régler selon les modalités indiquées ci-dessus.</span>';
+invoicePage.querySelector('.sign-col h4').innerText = 'SIGNATURE CLIENT / REÇU';
+invoicePage.querySelector('.sign-col .small').innerText = 'Facture acquittée après règlement intégral';
+invoicePage.querySelector('.sign-col .small').classList.remove('brand-name');
+invoicePage.querySelector('.totals').insertAdjacentHTML('afterend',
+  '<div class="invoice-payments"><div><span>Montant déjà réglé</span><span class="amount-paid" contenteditable="true">0</span></div><div class="balance"><span>Reste à payer</span><span class="balance-due">0 FCFA</span></div></div>');
+quotePage.parentNode.insertBefore(invoicePage, quotePage.nextSibling);
+
+const BRAND_SETTINGS_KEY = 'bcs_brand_settings';
+const DEFAULT_BRAND_SETTINGS = {
+  companyName: 'Easy Facture & Devis',
+  tagline: 'Vos devis et factures en quelques clics.',
+  phone: '77 585 13 85 / 76 933 41 78',
+  whatsapp: '+00393896852782',
+  email: '',
+  primary: '#23769f',
+  secondary: '#12293f',
+  logo: null
+};
+const defaultLogoSrc = quotePage.querySelector('.logo-wrap img').src;
+let brandSettings = loadBrandSettings();
+let pendingLogoData = null;
+
+function loadBrandSettings(){
+  try{
+    const raw = localStorage.getItem(BRAND_SETTINGS_KEY);
+    if(!raw) return {...DEFAULT_BRAND_SETTINGS};
+    const saved = JSON.parse(raw);
+    if(!saved || typeof saved !== 'object' || Array.isArray(saved)) throw new Error('Format de personnalisation invalide');
+    return {
+      companyName: typeof saved.companyName === 'string' && saved.companyName.trim()
+        ? saved.companyName.trim() : DEFAULT_BRAND_SETTINGS.companyName,
+      tagline: typeof saved.tagline === 'string' ? saved.tagline : DEFAULT_BRAND_SETTINGS.tagline,
+      phone: typeof saved.phone === 'string' ? saved.phone : DEFAULT_BRAND_SETTINGS.phone,
+      whatsapp: typeof saved.whatsapp === 'string' ? saved.whatsapp : DEFAULT_BRAND_SETTINGS.whatsapp,
+      email: typeof saved.email === 'string' ? saved.email : DEFAULT_BRAND_SETTINGS.email,
+      primary: /^#[0-9a-f]{6}$/i.test(saved.primary) ? saved.primary : DEFAULT_BRAND_SETTINGS.primary,
+      secondary: /^#[0-9a-f]{6}$/i.test(saved.secondary) ? saved.secondary : DEFAULT_BRAND_SETTINGS.secondary,
+      logo: saved.logo === null || typeof saved.logo === 'string' ? saved.logo : DEFAULT_BRAND_SETTINGS.logo
+    };
+  }catch(e){
+    alert("Impossible de lire les préférences de personnalisation. Les valeurs par défaut seront utilisées.");
+    return {...DEFAULT_BRAND_SETTINGS};
+  }
+}
+
+function applyBrandSettings(){
+  document.documentElement.style.setProperty('--brique', brandSettings.primary);
+  document.documentElement.style.setProperty('--bleu', brandSettings.secondary);
+  document.querySelectorAll('.brand-name').forEach(function(element){
+    element.textContent = brandSettings.companyName;
+  });
+  document.querySelectorAll('.brand-tagline').forEach(function(element){
+    element.textContent = brandSettings.tagline;
+    element.hidden = !brandSettings.tagline;
+  });
+  document.querySelectorAll('.brand-phone').forEach(function(element){
+    element.textContent = brandSettings.phone;
+    const phoneDigits = brandSettings.phone.replace(/[^\d+]/g, '');
+    if(phoneDigits) element.href = 'tel:' + phoneDigits;
+    else element.removeAttribute('href');
+  });
+  document.querySelectorAll('.brand-whatsapp').forEach(function(element){
+    element.textContent = brandSettings.whatsapp;
+    let whatsappDigits = brandSettings.whatsapp.replace(/\D/g, '');
+    if(whatsappDigits.startsWith('00')) whatsappDigits = whatsappDigits.slice(2);
+    if(whatsappDigits.length >= 8 && whatsappDigits.length <= 15){
+      element.href = 'https://wa.me/' + whatsappDigits;
+    }else{
+      element.removeAttribute('href');
+    }
+  });
+  document.querySelectorAll('.brand-whatsapp-wrap').forEach(function(element){
+    element.hidden = !brandSettings.whatsapp;
+  });
+  document.querySelectorAll('.brand-email-wrap').forEach(function(element){
+    element.hidden = !brandSettings.email;
+  });
+  document.querySelectorAll('.brand-email').forEach(function(element){
+    element.textContent = brandSettings.email;
+    if(brandSettings.email) element.href = 'mailto:' + brandSettings.email;
+    else element.removeAttribute('href');
+  });
+  const logoSrc = brandSettings.logo === null ? defaultLogoSrc : brandSettings.logo;
+  document.querySelectorAll('.logo-wrap img').forEach(function(image){
+    image.hidden = !logoSrc;
+    if(logoSrc) image.src = logoSrc;
+    else image.removeAttribute('src');
+  });
+  document.title = (activeDocument === 'devis' ? 'Devis' : 'Facture') + ' - ' + brandSettings.companyName;
+}
+
+function openSettingsModal(){
+  document.getElementById('companyNameInput').value = brandSettings.companyName;
+  document.getElementById('companyTaglineInput').value = brandSettings.tagline;
+  document.getElementById('companyPhoneInput').value = brandSettings.phone;
+  document.getElementById('companyWhatsappInput').value = brandSettings.whatsapp;
+  document.getElementById('companyEmailInput').value = brandSettings.email;
+  document.getElementById('primaryColorInput').value = brandSettings.primary;
+  document.getElementById('secondaryColorInput').value = brandSettings.secondary;
+  document.getElementById('companyLogoInput').value = '';
+  document.getElementById('removeLogoInput').checked = false;
+  pendingLogoData = null;
+  updateLogoPreview();
+  document.getElementById('settingsModal').style.display = 'flex';
+}
+
+function closeSettingsModal(){
+  document.getElementById('settingsModal').style.display = 'none';
+  pendingLogoData = null;
+}
+
+function updateLogoPreview(){
+  const preview = document.getElementById('logoPreview');
+  const removeLogo = document.getElementById('removeLogoInput').checked;
+  const previewSrc = removeLogo ? '' : pendingLogoData ||
+    (brandSettings.logo === null ? defaultLogoSrc : brandSettings.logo);
+  preview.hidden = !previewSrc;
+  if(previewSrc) preview.src = previewSrc;
+  else preview.removeAttribute('src');
+}
+
+document.getElementById('companyLogoInput').addEventListener('change', function(){
+  const file = this.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    alert("Veuillez sélectionner un fichier image.");
+    this.value = '';
+    return;
+  }
+  if(file.size > 1024 * 1024){
+    alert("Le logo doit peser 1 Mo maximum.");
+    this.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(){
+    pendingLogoData = reader.result;
+    document.getElementById('removeLogoInput').checked = false;
+    updateLogoPreview();
+  };
+  reader.onerror = function(){
+    alert("Impossible de lire ce fichier image.");
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('removeLogoInput').addEventListener('change', updateLogoPreview);
+
+function saveBrandSettings(event){
+  event.preventDefault();
+  const companyName = document.getElementById('companyNameInput').value.trim();
+  const companyEmail = document.getElementById('companyEmailInput').value.trim();
+  if(!companyName){
+    alert("Le nom de l'entreprise ne peut pas être vide.");
+    return;
+  }
+  if(companyEmail && !document.getElementById('companyEmailInput').validity.valid){
+    alert("Veuillez saisir une adresse e-mail d'entreprise valide.");
+    return;
+  }
+  const updatedSettings = {
+    companyName: companyName,
+    tagline: document.getElementById('companyTaglineInput').value.trim(),
+    phone: document.getElementById('companyPhoneInput').value.trim(),
+    whatsapp: document.getElementById('companyWhatsappInput').value.trim(),
+    email: companyEmail,
+    primary: document.getElementById('primaryColorInput').value,
+    secondary: document.getElementById('secondaryColorInput').value,
+    logo: document.getElementById('removeLogoInput').checked ? '' :
+      (pendingLogoData || brandSettings.logo)
+  };
+  try{
+    localStorage.setItem(BRAND_SETTINGS_KEY, JSON.stringify(updatedSettings));
+  }catch(e){
+    alert("Impossible d'enregistrer ces préférences : le stockage local est plein ou indisponible.");
+    return;
+  }
+  brandSettings = updatedSettings;
+  applyBrandSettings();
+  closeSettingsModal();
+}
+
+function resetBrandSettings(){
+  try{
+    localStorage.removeItem(BRAND_SETTINGS_KEY);
+  }catch(e){
+    alert("Impossible de rétablir les valeurs par défaut : le stockage local est indisponible.");
+    return;
+  }
+  brandSettings = {...DEFAULT_BRAND_SETTINGS};
+  applyBrandSettings();
+  openSettingsModal();
+}
+
+applyBrandSettings();
+
+function getActivePage(){
+  return activeDocument === 'facture' ? invoicePage : quotePage;
+}
+
+function switchDocument(type){
+  activeDocument = type;
+  quotePage.classList.toggle('active', type === 'devis');
+  invoicePage.classList.toggle('active', type === 'facture');
+  document.getElementById('quoteTab').classList.toggle('active', type === 'devis');
+  document.getElementById('quoteTab').setAttribute('aria-selected', String(type === 'devis'));
+  document.getElementById('invoiceTab').classList.toggle('active', type === 'facture');
+  document.getElementById('invoiceTab').setAttribute('aria-selected', String(type === 'facture'));
+  document.title = (type === 'devis' ? 'Devis' : 'Facture') + ' - ' + brandSettings.companyName;
+  calcTotals(getActivePage());
+}
+
+function rowTemplate(num){
+  return `
+    <td class="num">${num}</td>
+    <td contenteditable="true"></td>
+    <td class="unite" contenteditable="true"></td>
+    <td class="qte" contenteditable="true"></td>
+    <td class="pu" contenteditable="true"></td>
+    <td class="montant" contenteditable="true"></td>
+    <td class="actions">
+      <button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne après">➕</button>
+      <button class="row-btn del" onclick="deleteRow(this)" title="Supprimer cette ligne">🗑</button>
+    </td>
+  `;
+}
+
+function groupTemplate(label){
+  return `
+    <td colspan="6" contenteditable="true">${label}</td>
+    <td class="actions">
+      <button class="row-btn ins" onclick="insertRowAfter(this)" title="Ajouter une ligne dans cette section">➕L</button>
+      <button class="row-btn ins" onclick="insertSectionAfter(this)" title="Ajouter une nouvelle section après">➕S</button>
+      <button class="row-btn del" onclick="deleteSection(this)" title="Supprimer cette section">🗑</button>
+    </td>
+  `;
+}
+
+function renumberRows(){
+  const rows = getActivePage().querySelectorAll('#itemsTable tbody tr:not(.group)');
+  rows.forEach((tr, i) => {
+    const numCell = tr.querySelector('td.num');
+    if(numCell) numCell.innerText = i + 1;
+  });
+}
+
+// Ajoute une ligne juste après la ligne (ou section) contenant le bouton cliqué
+function insertRowAfter(btn){
+  const tr = btn.closest('tr');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = rowTemplate('');
+  tr.parentNode.insertBefore(newRow, tr.nextSibling);
+  renumberRows();
+  calcTotals();
+}
+
+// Supprime la ligne d'article contenant le bouton cliqué
+function deleteRow(btn){
+  const tbody = getActivePage().querySelector('#itemsTable tbody');
+  const totalItemRows = tbody.querySelectorAll('tr:not(.group)').length;
+  if(totalItemRows <= 1){
+    alert("Impossible de supprimer : il doit rester au moins une ligne.");
+    return;
+  }
+  btn.closest('tr').remove();
+  renumberRows();
+  calcTotals();
+}
+
+// Ajoute une nouvelle section (LOT) juste après la section contenant le bouton cliqué
+function insertSectionAfter(btn){
+  if(activeDocument !== 'devis') return;
+  const groupRow = btn.closest('tr');
+  let insertPoint = groupRow;
+  let next = insertPoint.nextElementSibling;
+  while(next && !next.classList.contains('group')){
+    insertPoint = next;
+    next = next.nextElementSibling;
+  }
+  const newGroup = document.createElement('tr');
+  newGroup.className = 'group';
+  newGroup.innerHTML = groupTemplate('NOUVELLE SECTION — ________________________');
+  const newItem = document.createElement('tr');
+  newItem.innerHTML = rowTemplate('');
+  insertPoint.parentNode.insertBefore(newGroup, insertPoint.nextSibling);
+  newGroup.parentNode.insertBefore(newItem, newGroup.nextSibling);
+  renumberRows();
+  calcTotals();
+}
+
+// Supprime une section entière (son entête + toutes ses lignes)
+function deleteSection(btn){
+  if(activeDocument !== 'devis') return;
+  const tbody = getActivePage().querySelector('#itemsTable tbody');
+  const totalGroups = tbody.querySelectorAll('tr.group').length;
+  if(totalGroups <= 1){
+    alert("Impossible de supprimer : il doit rester au moins une section.");
+    return;
+  }
+  if(!confirm('Supprimer cette section et toutes ses lignes ?')) return;
+  const groupRow = btn.closest('tr');
+  const toRemove = [groupRow];
+  let next = groupRow.nextElementSibling;
+  while(next && !next.classList.contains('group')){
+    toRemove.push(next);
+    next = next.nextElementSibling;
+  }
+  toRemove.forEach(r => r.remove());
+  renumberRows();
+  calcTotals();
+}
+
+// Ajoute une ligne en toute fin de tableau (dernière section)
+function addRow(){
+  const tbody = getActivePage().querySelector('#itemsTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = rowTemplate('');
+  tbody.appendChild(tr);
+  renumberRows();
+  calcTotals();
+}
+
+// Ajoute une nouvelle section en toute fin de tableau
+function addSection(){
+  if(activeDocument !== 'devis') return;
+  const tbody = getActivePage().querySelector('#itemsTable tbody');
+  const newGroup = document.createElement('tr');
+  newGroup.className = 'group';
+  newGroup.innerHTML = groupTemplate('NOUVELLE SECTION — ________________________');
+  const newItem = document.createElement('tr');
+  newItem.innerHTML = rowTemplate('');
+  tbody.appendChild(newGroup);
+  tbody.appendChild(newItem);
+  renumberRows();
+  calcTotals();
+}
+
+function parseNumber(text){
+  const cleaned = (text || '').replace(/[^\d.,-]/g, '').replace(/\s/g,'').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatFCFA(n){
+  return Math.round(n).toLocaleString('fr-FR') + ' FCFA';
+}
+
+// Recalcule le montant (Qté x Prix Unit.) d'une ligne d'article
+function updateRowMontant(tr){
+  const qteCell = tr.querySelector('td.qte');
+  const puCell = tr.querySelector('td.pu');
+  const montantCell = tr.querySelector('td.montant');
+  if(!qteCell || !puCell || !montantCell) return;
+  const qte = parseNumber(qteCell.innerText);
+  const pu = parseNumber(puCell.innerText);
+  montantCell.innerText = (qte && pu) ? formatFCFA(qte * pu) : '';
+}
+
+function calcTotals(page = getActivePage()){
+  const montants = page.querySelectorAll('#itemsTable td.montant');
+  let total = 0;
+  montants.forEach(td => { total += parseNumber(td.innerText); });
+  page.querySelector('#totalHT').innerText = formatFCFA(total);
+
+  const remisePct = parseNumber(page.querySelector('#remisePct').innerText);
+  const remiseMontant = total * remisePct / 100;
+  const net = total - remiseMontant;
+  page.querySelector('#remiseMontant').innerText = formatFCFA(remiseMontant);
+  page.querySelector('#netAPayer').innerText = formatFCFA(net);
+  const paid = page.querySelector('.amount-paid');
+  const balance = page.querySelector('.balance-due');
+  if(paid && balance){
+    balance.innerText = formatFCFA(Math.max(0, net - parseNumber(paid.innerText)));
+  }
+}
+
+function initializePage(page){
+  page.addEventListener('input', function(e){
+    const target = e.target;
+    const tr = target.closest('tr');
+    if(tr && !tr.classList.contains('group') &&
+       (target.classList.contains('qte') || target.classList.contains('pu'))){
+      updateRowMontant(tr);
+    }
+    calcTotals(page);
+  });
+  calcTotals(page);
+}
+
+initializePage(quotePage);
+initializePage(invoicePage);
+
+/* ============================================================
+   HISTORIQUE DES DEVIS (sauvegarde locale dans le navigateur)
+   ============================================================ */
+function getHistory(type = activeDocument){
+  try{
+    const raw = localStorage.getItem('bcs_' + type + '_history');
+    const history = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(history)) throw new Error('Format d’historique invalide');
+    return history;
+  }catch(error){
+    console.error("Impossible de lire l'historique enregistré.", error);
+    alert("Impossible de lire l'historique : les données locales sont indisponibles ou invalides.");
+    return [];
+  }
+}
+
+function setHistory(list, type = activeDocument){
+  try{
+    localStorage.setItem('bcs_' + type + '_history', JSON.stringify(list));
+    return true;
+  }catch(error){
+    console.error("Impossible d'enregistrer l'historique.", error);
+    alert("Impossible de sauvegarder : le stockage local est plein ou indisponible.");
+    return false;
+  }
+}
+
+function getClientName(page = getActivePage()){
+  const p = page.querySelectorAll('.info-col')[0];
+  const span = p ? p.querySelector('p span[contenteditable]') : null;
+  const txt = span ? span.innerText.trim() : '';
+  return (txt && txt.indexOf('___') === -1) ? txt : 'Client sans nom';
+}
+
+function getObjetTravaux(page = getActivePage()){
+  const span = page.querySelector('.objet span[contenteditable]');
+  const txt = span ? span.innerText.trim() : '';
+  return (txt && txt.indexOf('___') === -1) ? txt : '';
+}
+
+function getClientField(page, label){
+  const paragraphs = page.querySelectorAll('.info-col:first-child p');
+  for(const paragraph of paragraphs){
+    if(paragraph.innerText.trim().toLowerCase().startsWith(label.toLowerCase())){
+      const value = paragraph.querySelector('span[contenteditable]');
+      const text = value ? value.innerText.trim() : '';
+      return text.indexOf('___') === -1 ? text : '';
+    }
+  }
+  return '';
+}
+
+function buildShareMessage(page = getActivePage()){
+  calcTotals(page);
+  const documentType = activeDocument === 'devis' ? 'Devis' : 'Facture';
+  const number = page.querySelector('.devis-num').innerText.replace(/^N°\s*/, '').trim();
+  const client = getClientName(page);
+  const objet = getObjetTravaux(page);
+  const rows = Array.from(page.querySelectorAll('#itemsTable tbody tr:not(.group)'));
+  const items = rows.map(function(row){
+    const cells = row.querySelectorAll('td');
+    const designation = cells[1] ? cells[1].innerText.trim() : '';
+    if(!designation) return '';
+    const quantity = cells[3] ? cells[3].innerText.trim() : '';
+    const unit = cells[2] ? cells[2].innerText.trim() : '';
+    const amount = cells[5] ? cells[5].innerText.trim() : '';
+    return '- ' + designation + (quantity ? ' — ' + quantity + (unit ? ' ' + unit : '') : '') +
+      (amount ? ' : ' + amount : '');
+  }).filter(Boolean);
+  const lines = [
+    'Bonjour' + (client !== 'Client sans nom' ? ' ' + client : '') + ',',
+    '',
+    'Veuillez trouver ci-dessous le résumé de votre ' + documentType.toLowerCase() + ' ' + number + '.'
+  ];
+  if(objet) lines.push('Objet : ' + objet);
+  if(items.length) lines.push('', 'Détail :', ...items);
+  lines.push('', 'Net à payer : ' + page.querySelector('#netAPayer').innerText);
+  const paid = page.querySelector('.amount-paid');
+  const balance = page.querySelector('.balance-due');
+  if(paid && balance){
+    lines.push('Déjà réglé : ' + paid.innerText.trim() + ' FCFA');
+    lines.push('Reste à payer : ' + balance.innerText);
+  }
+  lines.push('', 'Cordialement,', brandSettings.companyName);
+  return lines.join('\n');
+}
+
+function buildShareLinks(){
+  const page = getActivePage();
+  const message = document.getElementById('shareMessage').value.trim();
+  const email = getClientField(page, 'Email :');
+  const phone = getClientField(page, 'Téléphone :');
+  const number = page.querySelector('.devis-num').innerText.replace(/^N°\s*/, '').trim();
+  const subject = (activeDocument === 'devis' ? 'Devis ' : 'Facture ') + number;
+  const internationalPhone = phone.match(/^\s*(?:\+|00)\s*[\d\s().-]+$/)
+    ? phone.replace(/^\s*00/, '+').replace(/\D/g, '') : '';
+  const whatsappBase = internationalPhone.length >= 8
+    ? 'https://wa.me/' + internationalPhone
+    : 'https://wa.me/';
+  const validEmail = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i.test(email);
+  return {
+    email: validEmail
+      ? 'mailto:' + email + '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(message)
+      : '',
+    whatsapp: whatsappBase + '?text=' + encodeURIComponent(message),
+    emailAddress: email,
+    phone: phone
+  };
+}
+
+function openShareModal(){
+  const page = getActivePage();
+  const email = getClientField(page, 'Email :');
+  const phone = getClientField(page, 'Téléphone :');
+  selectedSharePdf = null;
+  document.getElementById('sharePdfInput').value = '';
+  document.getElementById('shareMessage').value = buildShareMessage(page);
+  document.getElementById('shareRecipient').innerText =
+    'Client : ' + getClientName(page) +
+    ' · E-mail : ' + (email || 'non renseigné') +
+    ' · Téléphone : ' + (phone || 'non renseigné');
+  document.getElementById('shareModal').style.display = 'flex';
+  prepareSharePdf(page);
+}
+
+document.getElementById('sharePdfInput').addEventListener('change', async function(){
+  const file = this.files[0];
+  if(!file){
+    selectedSharePdf = null;
+    if(preparedSharePdf){
+      document.getElementById('shareStatus').innerText =
+        'PDF prêt. Tu peux le partager ou en sélectionner un autre à joindre.';
+    }
+    return;
+  }
+  try{
+    const signature = new TextDecoder().decode(await file.slice(0, 5).arrayBuffer());
+    if(signature !== '%PDF-'){
+      this.value = '';
+      selectedSharePdf = null;
+      alert("Le fichier sélectionné n'est pas un PDF valide.");
+      return;
+    }
+  }catch(error){
+    this.value = '';
+    selectedSharePdf = null;
+    console.error('Impossible de lire le PDF sélectionné.', error);
+    alert("Impossible de lire le fichier PDF sélectionné.");
+    return;
+  }
+  selectedSharePdf = file;
+  document.getElementById('shareStatus').innerText =
+    'PDF joint : ' + file.name + '. Ce fichier sera utilisé à la place du PDF généré.';
+});
+
+function closeShareModal(){
+  document.getElementById('shareModal').style.display = 'none';
+}
+
+function getSharePdfName(page){
+  const documentType = activeDocument === 'devis' ? 'devis' : 'facture';
+  const number = page.querySelector('.devis-num').innerText.replace(/^N°\s*/, '').trim();
+  const safeNumber = number.replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '');
+  return documentType + '-' + (safeNumber || 'document') + '.pdf';
+}
+
+async function createSharePdf(page){
+  if(typeof html2pdf !== 'function'){
+    throw new Error("Le générateur PDF local n'est pas disponible.");
+  }
+
+  calcTotals(page);
+  const exportPage = page.cloneNode(true);
+  exportPage.querySelectorAll('.actions, .table-actions').forEach(element => element.remove());
+  exportPage.querySelectorAll('[contenteditable="true"]').forEach(element => {
+    element.removeAttribute('contenteditable');
+  });
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;top:0;left:0;width:820px;z-index:999;pointer-events:none;background:#fff;overflow:auto;';
+  exportPage.style.cssText += ';width:820px;max-width:none;margin:0;box-shadow:none;';
+  wrapper.appendChild(exportPage);
+  document.body.appendChild(wrapper);
+
+  try{
+    const blob = await html2pdf().set({
+      margin: 10,
+      filename: getSharePdfName(page),
+      image: {type: 'jpeg', quality: 0.98},
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 900
+      },
+      jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'},
+      pagebreak: {mode: ['css', 'legacy']}
+    }).from(exportPage).outputPdf('blob');
+    return new File([blob], getSharePdfName(page), {type: 'application/pdf'});
+  }finally{
+    wrapper.remove();
+  }
+}
+
+async function prepareSharePdf(page){
+  const status = document.getElementById('shareStatus');
+  const buttons = [
+    document.getElementById('shareWhatsAppButton'),
+    document.getElementById('shareEmailButton')
+  ];
+  preparedSharePdf = null;
+  buttons.forEach(button => { button.disabled = true; });
+  status.innerText = 'Préparation du PDF…';
+
+  try{
+    preparedSharePdf = await createSharePdf(page);
+    buttons.forEach(button => { button.disabled = false; });
+    status.innerText = selectedSharePdf
+      ? 'PDF joint : ' + selectedSharePdf.name + '. Ce fichier sera utilisé à la place du PDF généré.'
+      : 'PDF prêt. Tu peux le partager ou en sélectionner un autre à joindre.';
+  }catch(error){
+    console.error('Impossible de générer le PDF à partager.', error);
+    status.innerText = 'Impossible de préparer le PDF. Tu peux utiliser « Imprimer / Exporter en PDF » à la place.';
+  }
+}
+
+function downloadSharePdf(){
+  const pdf = selectedSharePdf || preparedSharePdf;
+  if(!pdf){
+    alert("Le PDF n'est pas encore prêt. Réessaie dans quelques instants.");
+    return;
+  }
+  const url = URL.createObjectURL(pdf);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = pdf.name;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+async function sharePreparedPdf(channel){
+  const pdf = selectedSharePdf || preparedSharePdf;
+  if(!pdf){
+    alert("Le PDF n'est pas encore prêt. Réessaie dans quelques instants.");
+    return;
+  }
+  const links = buildShareLinks();
+  const status = document.getElementById('shareStatus');
+  const shareData = {
+    files: [pdf],
+    title: activeDocument === 'devis' ? 'Devis' : 'Facture',
+    text: document.getElementById('shareMessage').value.trim()
+  };
+
+  if(navigator.share && navigator.canShare && navigator.canShare({files: shareData.files})){
+    try{
+      await navigator.share(shareData);
+      status.innerText = 'Le PDF a été transmis à l’application de partage.';
+      return;
+    }catch(error){
+      if(error.name === 'AbortError') return;
+      console.error('Le partage natif a échoué; le PDF va être téléchargé.', error);
+      downloadSharePdf();
+      status.innerText = 'Le partage a échoué. Le PDF a été téléchargé; joins-le manuellement.';
+      return;
+    }
+  }
+
+  downloadSharePdf();
+  if(channel === 'whatsapp'){
+    const whatsappWindow = window.open(links.whatsapp, '_blank', 'noopener,noreferrer');
+    status.innerText = whatsappWindow
+      ? 'PDF téléchargé. Joins-le au message WhatsApp ouvert.'
+      : 'PDF téléchargé. Ouvre WhatsApp et joins le fichier au message.';
+  }else{
+    if(!links.email){
+      status.innerText = 'PDF téléchargé. L’adresse e-mail du client est absente ou invalide; joins le PDF à un nouveau message.';
+      alert("L'adresse e-mail du client est absente ou invalide. Le PDF a été téléchargé pour que tu puisses le joindre manuellement.");
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = links.email;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    status.innerText = 'PDF téléchargé. Ajoute-le en pièce jointe au brouillon d’e-mail.';
+  }
+}
+
+function sendByWhatsApp(){
+  sharePreparedPdf('whatsapp');
+}
+
+function sendByEmail(){
+  const links = buildShareLinks();
+  const canSharePdf = Boolean(
+    navigator.share && navigator.canShare &&
+    navigator.canShare({files: [selectedSharePdf || preparedSharePdf]})
+  );
+  if(!links.email && !canSharePdf){
+    alert("L'adresse e-mail du client est absente ou invalide. Renseigne-la dans les informations client avant l'envoi.");
+    return;
+  }
+  sharePreparedPdf('email');
+}
+
+function saveCurrentDocument(){
+  const page = getActivePage();
+  calcTotals(page);
+
+  const history = getHistory();
+  const now = new Date();
+
+  const entry = {
+    id: activeDocument + '_' + now.getTime(),
+    type: activeDocument,
+    savedAt: now.toISOString(),
+    client: getClientName(page),
+    objet: getObjetTravaux(page),
+    total: page.querySelector('#netAPayer').innerText,
+    html: page.innerHTML
+  };
+
+  history.unshift(entry); // le plus récent en premier
+  if(setHistory(history)){
+    alert("Le " + (activeDocument === 'devis' ? 'devis' : 'facture') + " a été sauvegardé dans l'historique (" + entry.client + ").");
+  }
+}
+
+function formatHistoryDate(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }catch(e){
+    return iso;
+  }
+}
+
+function renderHistoryList(){
+  const container = document.getElementById('historyList');
+  const history = getHistory();
+  const label = activeDocument === 'devis' ? 'devis' : 'facture';
+  document.getElementById('historyTitle').innerText = 'Historique des ' + (activeDocument === 'devis' ? 'devis' : 'factures');
+
+  if(history.length === 0){
+    container.innerHTML = '<div class="history-empty">Aucune ' + label + ' sauvegardée pour le moment.</div>';
+    return;
+  }
+
+  let html = '';
+  history.forEach(function(entry){
+    const clientSafe = entry.client.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const objetSafe = entry.objet ? (' — ' + entry.objet.replace(/</g, '&lt;').replace(/>/g, '&gt;')) : '';
+    html += ''
+      + '<div class="history-item">'
+      +   '<div class="history-item-info">'
+      +     '<div class="history-item-client">' + clientSafe + objetSafe + '</div>'
+      +     '<div class="history-item-meta">' + formatHistoryDate(entry.savedAt) + ' &middot; Net à payer : ' + entry.total + '</div>'
+      +   '</div>'
+      +   '<div class="history-item-actions">'
+      +     '<button class="history-btn load" onclick="loadDocumentFromHistory(\'' + entry.id + '\')">Charger</button>'
+      +     '<button class="history-btn del" onclick="deleteDocumentFromHistory(\'' + entry.id + '\')">Supprimer</button>'
+      +   '</div>'
+      + '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function openHistoryModal(){
+  renderHistoryList();
+  document.getElementById('historyModal').style.display = 'flex';
+}
+
+function closeHistoryModal(){
+  document.getElementById('historyModal').style.display = 'none';
+}
+
+function loadDocumentFromHistory(id){
+  const history = getHistory();
+  const entry = history.find(function(e){ return e.id === id; });
+  if(!entry) return;
+  const label = activeDocument === 'devis' ? 'devis' : 'facture';
+  if(!confirm("Charger cette " + label + " va remplacer le contenu actuel du formulaire (non sauvegardé sera perdu). Continuer ?")) return;
+
+  const page = getActivePage();
+  page.innerHTML = entry.html;
+
+  closeHistoryModal();
+  applyBrandSettings();
+  calcTotals(page);
+}
+
+function deleteDocumentFromHistory(id){
+  const label = activeDocument === 'devis' ? 'devis' : 'facture';
+  if(!confirm("Supprimer définitivement cette " + label + " de l'historique ?")) return;
+  let history = getHistory();
+  history = history.filter(function(e){ return e.id !== id; });
+  setHistory(history);
+  renderHistoryList();
+}
+
+// Ferme la fenêtre d'historique si on clique en dehors de la boîte
+document.getElementById('historyModal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeHistoryModal();
+  }
+});
+document.getElementById('settingsModal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeSettingsModal();
+  }
+});
+document.getElementById('shareModal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeShareModal();
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    closeSettingsModal();
+    closeHistoryModal();
+    closeShareModal();
+  }
+});
+</script>
+
+</body>
+</html>
